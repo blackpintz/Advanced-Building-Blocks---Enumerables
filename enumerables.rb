@@ -51,8 +51,26 @@ module MyEnumerables
     end
     !new_arr.empty?
   end
+  
+  def my_none?
+    new_arr = []
+    my_each do |x|
+      if block_given?
+        yield(x)
+        new_arr.push(x) if !yield(x)
+      else
+        new_arr.push(x) if x.nil? || x == false
+      end
+    end
+    new_arr.length == length
+  end
 end
 
 class Array
   include MyEnumerables
 end
+
+
+puts [].my_none?
+
+
