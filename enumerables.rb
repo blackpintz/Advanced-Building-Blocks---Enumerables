@@ -25,10 +25,34 @@ module MyEnumerables
     end
     new_arr
   end
+
+  def my_all?
+    new_arr = []
+    my_each do |x|
+      if block_given?
+        yield(x)
+        new_arr.push(x) if yield(x)
+      else
+        new_arr.push(x) unless x.nil? || x == false
+      end
+    end
+    new_arr.length == length
+  end
+
+  def my_any?
+    new_arr = []
+    my_each do |x|
+      if block_given?
+        yield(x)
+        new_arr.push(x) if yield(x)
+      else
+        new_arr.push(x) unless x.nil? || x == false
+      end
+    end
+    !new_arr.empty?
+  end
 end
 
 class Array
   include MyEnumerables
 end
-
-print [1, 2, 5, 6, 12].my_select(&:even?)
