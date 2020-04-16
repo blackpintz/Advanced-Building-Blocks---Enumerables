@@ -12,8 +12,8 @@ Check out the live demo to see how my enumerables compare to those of Ruby
 
 # Built With
 
-Ruby
-AWS IDE
+-Ruby
+-AWS IDE
 
 ## Live Demo
 
