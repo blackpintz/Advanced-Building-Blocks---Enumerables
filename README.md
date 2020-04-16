@@ -6,6 +6,8 @@ I Implement my own version of twelve of Ruby's enumerable methods.
 
 Some of the enumerable methods include #each, #map, #select, #none, and #any?.
 
+You can find the list [here](https://ruby-doc.org/core-2.6.5/Enumerable.html)
+
 I created a module to  house all the methods.
 
 Check out the live demo to see how my enumerables compare to those of Ruby
