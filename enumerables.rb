@@ -24,6 +24,8 @@ end
   def reg_class_any(param, arr, value)
     if param.is_a?(Class)
       arr.push(value) unless !value.is_a?(param)
+    elsif param == /d/
+      arr.push(value)
     else
       arr
     end
@@ -33,8 +35,56 @@ end
     if param.is_a?(Class)
       arr.push(value) unless value.is_a?(param)
     else
-      arr.push(value) unless param == /t/
+      arr.push(value) unless param == /t/ || param == value
     end
+  end
+  
+  def addition(x, y)
+    result = x + y
+    result
+  end
+  
+  def production(x, y)
+    result = x * y
+    result
+  end
+  
+  def subtraction(x,y)
+    result = x - y
+    result
+  end 
+  
+   def division(x,y)
+    result = x / y
+    result
+   end 
+  
+  def accumulator(total, acc_arr,ind_arr)
+    i = 2
+    first_total = method(total).call(ind_arr[0],ind_arr[1])
+    acc_arr.push(first_total)
+    while i < ind_arr.length
+      j = i - 2
+      x = ind_arr[i]
+      result = method(total).call(acc_arr[j],x)
+      acc_arr.push(result)
+      i += 1
+    end
+    acc_arr
+  end
+  
+  def accumulator_with_initial(total, acc_arr, ind_arr, first)
+    i = 1
+    first_total =  method(total).call(first,ind_arr[0])
+    acc_arr.push(first_total)
+    while i < ind_arr.length
+      j = i - 1
+      x = ind_arr[i]
+      result = method(total).call(acc_arr[j],x)
+      acc_arr.push(result)
+      i += 1
+    end
+    acc_arr
   end
 
 
@@ -84,7 +134,8 @@ module MyEnumerables
 
   def my_all?(arg=nil)
     new_arr = []
-    my_each do |x|
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    self_arr.my_each do |x|
       if (arg && block_given?) || arg
        reg_class_all(arg,new_arr,x)
       elsif  block_given? 
@@ -94,12 +145,13 @@ module MyEnumerables
       end
     end
     puts "Warning: given block not used" if arg && block_given?
-    new_arr.length == length
+    new_arr.length == self_arr.length
   end
 
   def my_any?(arg=nil)
     new_arr = []
-    my_each do |x|
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    self_arr.my_each do |x|
       if (arg && block_given?) || arg
          reg_class_any(arg,new_arr,x)
       elsif block_given?
@@ -114,7 +166,8 @@ module MyEnumerables
 
   def my_none?(arg=nil)
     new_arr = []
-    my_each do |x|
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    self_arr.my_each do |x|
       if (arg && block_given?) || arg
         reg_class_none(arg,new_arr,x)
       elsif block_given?
@@ -124,12 +177,13 @@ module MyEnumerables
         new_arr.push(x)
       end
     end
-    new_arr.length == length
+    new_arr.length == self_arr.length
   end
 
   def my_count(num = nil)
     new_arr = []
-    my_each do |x|
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    self_arr.my_each do |x|
       if block_given?
         check = yield(x)
         block_method(check, x, new_arr)
@@ -137,49 +191,70 @@ module MyEnumerables
         param_method(x, num, new_arr)
       end
     end
-    new_arr.length && num.nil? && !block_given? ? length : new_arr.length
+    new_arr.length && num.nil? && !block_given? ? self_arr.length : new_arr.length
   end
 
-  def my_map(&prc)
+  def my_map(prc=nil)
     new_arr = []
-    if block_given?
-      my_each do |x|
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    if (prc && block_given?) || prc
+      self_arr.my_each do |x|
+      prc.call(x)
+      new_arr.push(prc.call(x))
+    end
+     new_arr
+    elsif block_given?
+    self_arr.my_each do |x|
         yield(x)
         new_arr.push(yield(x))
       end
       new_arr
-    elsif prc
-      prc.call
     else to_enum(:map)
     end
   end
 
-  def my_inject(num = 0)
+  def my_inject(num = nil,val = nil)
     total_arr = []
-    if num.zero?
-      i = 2
-      first_total = yield(self[0], self[1])
-      total_arr.push(first_total)
-      while i < length
-        j = i - 2
-        x = self[i]
-        total = yield(x, total_arr[j])
-        total_arr.push(total)
-        i += 1
+    self.is_a?(Range)? self_arr = self.to_a : self_arr = self
+    if !block_given?
+      if num && val
+        accumulator_with_initial(:addition, total_arr, self_arr, num) if val == :+ 
+        accumulator_with_initial(:production, total_arr, self_arr, num)  if val == :* 
+        accumulator_with_initial(:subtraction, total_arr, self_arr, num)  if val == :-
+        accumulator_with_initial(:division, total_arr, self_arr, num)  if val == :/ 
+      end
+      if num
+          accumulator(:addition,total_arr,self_arr) if num == :+
+          accumulator(:subtraction,total_arr,self_arr) if num == :-
+          accumulator(:production,total_arr,self_arr) if num == :*
+          accumulator(:division,total_arr,self_arr) if num == :/
       end
     else
-      i = 1
-      first_total = yield(num, self[0])
-      total_arr.push(first_total)
-      while i < length
-        j = i - 1
-        x = self[i]
+      if num
+        i = 1
+        first_total = yield(num, self_arr[0])
+        total_arr.push(first_total)
+        while i < self_arr.length
+          j = i - 1
+          x = self_arr[i]
+          total = yield(x, total_arr[j])
+          total_arr.push(total)
+          i += 1
+        end
+      else
+        i = 2
+        first_total = yield(self_arr[0], self_arr[1])
+        total_arr.push(first_total)
+        while i < self_arr.length
+        j = i - 2
+        x = self_arr[i]
         total = yield(x, total_arr[j])
         total_arr.push(total)
         i += 1
+        end
       end
     end
-    total_arr.pop
+     total_arr.pop
   end
 end
 
@@ -195,8 +270,6 @@ def multiply_els(arr)
   arr.my_inject { |product, el| product * el }
 end
 
-print (6..10).my_select
-
-
-
+puts %w[will paul mary].my_any?(/d/) 
+puts %w[will paul mary].any?(/d/) 
 
