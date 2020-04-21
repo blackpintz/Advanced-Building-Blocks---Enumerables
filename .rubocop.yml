@@ -9,9 +9,9 @@ AllCops:
 Layout/LineLength:
   Max: 120
 Metrics/MethodLength:
-  Max: 30
+  Max: 60
 Metrics/ModuleLength:
-  Max: 150
+  Max: 200
 Metrics/AbcSize:
   Max: 50
 Metrics/ClassLength:
@@ -19,6 +19,10 @@ Metrics/ClassLength:
 Metrics/BlockLength:
   ExcludedMethods: ['describe']
   Max: 30
+Metrics/PerceivedComplexity:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
 
 
 Style/Documentation:
@@ -38,6 +42,8 @@ Style/HashEachMethods:
 Style/HashTransformKeys:
  Enabled: false
 Style/HashTransformValues:
+ Enabled: false
+Style/IfInsideElse:
  Enabled: false
 
 Layout/HashAlignment:
